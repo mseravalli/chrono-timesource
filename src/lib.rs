@@ -45,6 +45,9 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::cell::RefCell;
+    use std::rc::Rc;
+    use std::sync::{Arc, Mutex};
 
     #[test]
     fn manual_now() {
@@ -62,6 +65,51 @@ mod test {
         assert_eq!(
             manual_time_source.now(),
             Err(TimeSourceError::DateTimeNotSet)
+        );
+    }
+
+    #[test]
+    fn use_in_struct_rc() {
+        let manual_time_source: ManualTimeSource<Utc> = ManualTimeSource::new();
+        let shared_ts: Rc<RefCell<ManualTimeSource<Utc>>> =
+            Rc::new(RefCell::new(manual_time_source));
+        struct TimeUser<TS: TimeSource<Utc>> {
+            ts: Rc<RefCell<TS>>,
+        }
+        let tu: TimeUser<ManualTimeSource<Utc>> = TimeUser {
+            ts: shared_ts.clone(),
+        };
+
+        {
+            let mut ts = shared_ts.borrow_mut();
+            ts.set_now(Utc.with_ymd_and_hms(1970, 1, 1, 0, 1, 1).unwrap());
+        }
+
+        assert_eq!(
+            tu.ts.borrow().now(),
+            Ok(Utc.with_ymd_and_hms(1970, 1, 1, 0, 1, 1).unwrap())
+        );
+    }
+
+    #[test]
+    fn use_in_struct_arc() {
+        let manual_time_source: ManualTimeSource<Utc> = ManualTimeSource::new();
+        let shared_ts: Arc<Mutex<ManualTimeSource<Utc>>> = Arc::new(Mutex::new(manual_time_source));
+        struct TimeUser<TS: TimeSource<Utc>> {
+            ts: Arc<Mutex<TS>>,
+        }
+        let tu: TimeUser<ManualTimeSource<Utc>> = TimeUser {
+            ts: shared_ts.clone(),
+        };
+
+        {
+            let mut ts = shared_ts.lock().unwrap();
+            ts.set_now(Utc.with_ymd_and_hms(1970, 1, 1, 0, 1, 1).unwrap());
+        }
+
+        assert_eq!(
+            tu.ts.lock().unwrap().now(),
+            Ok(Utc.with_ymd_and_hms(1970, 1, 1, 0, 1, 1).unwrap())
         );
     }
 }
