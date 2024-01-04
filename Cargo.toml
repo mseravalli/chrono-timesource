@@ -1,0 +1,12 @@
+[package]
+name = "chrono-timesource"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "TimeSource for chrono. Simplifies testing."
+documentation = "https://github.com/mseravalli/chrono-timesource"
+repository = "https://github.com/mseravalli/chrono-timesource"
+categories = ["time"]
+
+[dependencies]
+chrono = "0"
