@@ -3,7 +3,7 @@
 This library should help improving testing so that it's possible to manually
 set the time during the tests.
 
-How to use the library:
+How to use the library for multithreaded applications:
 
 ```
 use chrono::prelude::*;
